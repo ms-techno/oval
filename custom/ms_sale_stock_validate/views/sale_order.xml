@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="sale_order_customer_ref_form_inherit" model="ir.ui.view">
+            <field name="name">sale_order_customer_ref_form_inherit</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//field[@name='locked']" position="after">
+                    <field name="stock_state" invisible="True"/>
+                </xpath>
+
+                <xpath expr="//header" position="inside">
+                    <button name="action_stock_button_validate"
+                            invisible="stock_state in ('draft', 'confirmed', 'done', 'cancel') or state != 'sale'"
+                            string="Delivery Validate" type="object" class="oe_highlight"
+                            groups="stock.group_stock_user" data-hotkey="v"/>
+                    <button name="action_stock_button_validate"
+                            invisible="stock_state in ('waiting', 'assigned', 'done', 'cancel') or state != 'sale'"
+                            string="Delivery Validate" type="object" groups="stock.group_stock_user"
+                            class="o_btn_validate" data-hotkey="v"/>
+                </xpath>
+
+            </field>
+        </record>
+
+    </data>
+</odoo>
