@@ -17,7 +17,7 @@
                     </group>
                     <group string="Customer">
                         <group>
-                            <field name="partner_id"/>
+                            <field name="partner_id" widget="many2many_tags"/>
                         </group>
                     </group>
                     <footer>

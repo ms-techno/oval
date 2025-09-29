@@ -18,7 +18,7 @@ class CustomerStatementWizard(models.TransientModel):
 
     start_date = fields.Date(string="Start Date", required=True)
     end_date = fields.Date(string="End Date", required=True)
-    partner_id = fields.Many2one(
+    partner_id = fields.Many2many(
         "res.partner",
         string="Customer",
         required=True,
@@ -119,7 +119,7 @@ class CustomerStatementWizard(models.TransientModel):
         invoices = self.env['account.move'].search([
             ('invoice_date', '>=', self.start_date),
             ('invoice_date', '<=', self.end_date),
-            ('partner_id', '=', self.partner_id.id),
+            ('partner_id', 'in', self.partner_id.ids),
             ('move_type', '=', 'out_invoice')
         ])
 
@@ -152,25 +152,25 @@ class CustomerStatementWizard(models.TransientModel):
             total_payment += paid_amount
             total_balance += invoice.amount_residual
 
-        partner_data = ""
-        if self.partner_id.name:
-            partner_data += f"{self.partner_id.name}\n"
-        if self.partner_id.street:
-            partner_data += f"{self.partner_id.street}\n"
-        if self.partner_id.street2:
-            partner_data += f"{self.partner_id.street2}\n"
-        if self.partner_id.city and self.partner_id.zip:
-            partner_data += f"{self.partner_id.city}, {self.partner_id.zip}\n"
-        elif self.partner_id.city:
-            partner_data += f"{self.partner_id.city}\n"
-        elif self.partner_id.zip:
-            partner_data += f"{self.partner_id.zip}\n"
-        if self.partner_id.state_id:
-            partner_data += f"{self.partner_id.state_id.name}\n"
-        if self.partner_id.country_id:
-            partner_data += f"{self.partner_id.country_id.name}\n"
-
-        sheet1.write_merge(3, 5, 0, 1, partner_data, mege_cell_format)
+        # partner_data = ""
+        # if self.partner_id.name:
+        #     partner_data += f"{self.partner_id.name}\n"
+        # if self.partner_id.street:
+        #     partner_data += f"{self.partner_id.street}\n"
+        # if self.partner_id.street2:
+        #     partner_data += f"{self.partner_id.street2}\n"
+        # if self.partner_id.city and self.partner_id.zip:
+        #     partner_data += f"{self.partner_id.city}, {self.partner_id.zip}\n"
+        # elif self.partner_id.city:
+        #     partner_data += f"{self.partner_id.city}\n"
+        # elif self.partner_id.zip:
+        #     partner_data += f"{self.partner_id.zip}\n"
+        # if self.partner_id.state_id:
+        #     partner_data += f"{self.partner_id.state_id.name}\n"
+        # if self.partner_id.country_id:
+        #     partner_data += f"{self.partner_id.country_id.name}\n"
+        #
+        # sheet1.write_merge(3, 5, 0, 1, partner_data, mege_cell_format)
         sheet1.write(3, 4, "AS ON", date_currency_format)
         sheet1.write(3, 5, date.today(), date_head)
         sheet1.write(4, 4, "Currency", date_currency_format)
@@ -178,12 +178,13 @@ class CustomerStatementWizard(models.TransientModel):
 
         row_start = 8
         for invoice in invoice_data:
-            sheet1.write(row_start, 0, invoice['invoice_date'], date_format)
-            sheet1.write(row_start, 1, invoice['due_date'], date_format)
-            sheet1.write(row_start, 2, invoice['invoice_id'], normal_partner_data)
-            sheet1.write(row_start, 3, invoice['amount'], normal_data)
-            sheet1.write(row_start, 4, invoice['payment_amount'], normal_data)
-            sheet1.write(row_start, 5, invoice['balance_due'], normal_data)
+            sheet1.write(row_start, 0, invoice['partner'], date_format)
+            sheet1.write(row_start, 1, invoice['invoice_date'], date_format)
+            sheet1.write(row_start, 2, invoice['due_date'], date_format)
+            sheet1.write(row_start, 3, invoice['invoice_id'], normal_partner_data)
+            sheet1.write(row_start, 4, invoice['amount'], normal_data)
+            sheet1.write(row_start, 5, invoice['payment_amount'], normal_data)
+            sheet1.write(row_start, 6, invoice['balance_due'], normal_data)
             sheet1.row(row_start).height = 300
             row_start += 1
         sheet1.row(row_start).height = 300
