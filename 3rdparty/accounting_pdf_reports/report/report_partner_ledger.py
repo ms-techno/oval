@@ -14,12 +14,13 @@ class ReportPartnerLedger(models.AbstractModel):
         reconcile_clause = "" if data['form']['reconciled'] else ' AND "account_move_line".full_reconcile_id IS NULL '
         params = [partner.id, tuple(data['computed']['move_state']), tuple(data['computed']['account_ids'])] + query_get_data[2]
         query = """
-            SELECT "account_move_line".id, "account_move_line".date, j.code, acc.name->>'en_US' as a_name, "account_move_line".ref, m.name as move_name, "account_move_line".name, "account_move_line".debit, "account_move_line".credit, "account_move_line".amount_currency,"account_move_line".currency_id, c.symbol AS currency_code
+            SELECT "account_move_line".id, "account_move_line".date, j.code, acc.name->>'en_US' as a_name, "account_move_line".ref, m.name as move_name,p.name as partner_name, m.name as move_name, "account_move_line".name, "account_move_line".debit, "account_move_line".credit, "account_move_line".amount_currency,"account_move_line".currency_id, c.symbol AS currency_code
             FROM """ + query_get_data[0] + """
             LEFT JOIN account_journal j ON ("account_move_line".journal_id = j.id)
             LEFT JOIN account_account acc ON ("account_move_line".account_id = acc.id)
             LEFT JOIN res_currency c ON ("account_move_line".currency_id=c.id)
             LEFT JOIN account_move m ON (m.id="account_move_line".move_id)
+            LEFT JOIN res_partner p ON (p.id= m.partner_id)
             WHERE "account_move_line".partner_id = %s
                 AND m.state IN %s
                 AND "account_move_line".account_id IN %s AND """ + query_get_data[1] + reconcile_clause + """
@@ -33,6 +34,7 @@ class ReportPartnerLedger(models.AbstractModel):
         date_format = lang_id.date_format
         for r in res:
             r['date'] = r['date']
+            r['partner_name'] = r['partner_name']
             r['displayed_name'] = '-'.join(
                 r[field_name] for field_name in ('move_name', 'ref', 'name')
                 if r[field_name] not in (None, '', '/')
